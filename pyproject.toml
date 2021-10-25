@@ -1,34 +1,37 @@
-[tool.poetry]
+[project]
 name = "cfactory"
-version = "0.1.0"
-description = "C/C++, et al., metaprogramming tool implemented in python"
-authors = ["Gabe Ingram <gabriel.ingram@colorado.edu>"]
-license = "GPLv3.0"
-maintainers = ["Gabe Ingram <gabriel.ingram@colorado.edu>"]
-readme = "README.md"
-homepage = ""
-repository = "https://github.com/gjingram/cfactory"
-documentation = ""
+version = "0.1.1"
+description = ""
+authors = [
+    {name = "Gabe Ingram", email = "gabriel.ingram@colorado.edu"},
+]
+dependencies = [
+    "loguru~=0.5",
+    "graphlib-backport~=1.0",
+    "-e file:///home/gabriel/projects/ccmodel#egg=ccmodel",
+]
+requires-python = ">=3.8"
+dynamic = ["classifiers"]
+license = {text = "MIT"}
 keywords = [
     "c",
     "cc",
     "c++",
+    "cpp",
     "parse",
-    "bindings",
+    "code",
+    "model",
     "meta",
     "metaprogramming"
 ]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-ccmodel = "^0.1.0"
-loguru = "^0.5.3"
-graphlib-backport = "^1.0.3"
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
-trashy-poetry = "^1.0.3"
+[project.urls]
+repository = "https://github.com/gjingram/cfactory"
+homepage = ""
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[tool]
+[tool.pdm]
