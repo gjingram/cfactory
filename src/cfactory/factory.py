@@ -16,6 +16,7 @@ import cfactory.assembler as assemblers
 import cfactory.utils.file_sys as fs
 import ccmodel.ccm as ccm_
 import ccmodel.reader as ccm_reader
+import pdb
 
 # CFactory config
 root = os.getcwd()
@@ -26,6 +27,7 @@ cache_dir = os.path.join(
 cfactory_verbosity = 0
 cfactory_clear_cache = False
 cfactory_force = False
+cfactory_mode = "cfactory"
 
 # CCM config
 ccm_state_dir = os.path.join(
@@ -37,6 +39,8 @@ force_ccm = False
 pretty_ccm = False
 ccm_clang_opts = []
 cfscripts = []
+
+project_name = ""
 
 meta_assemblers = []
 meta_sorter = graphlib.TopologicalSorter()
@@ -56,6 +60,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def __init__(self):
         assemblers.Assembler.__init__(self, "ccm", singleton=True)
         ccm_.CcmOpt.__init__(self)
+
         self.source_dependencies = set(all_source_dependencies())
         self.source_ccs = None
         self.ccs_catalogue = None
@@ -112,10 +117,11 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
             header: str) -> Optional["ccmodel.code_models.header.Header"]:
         if header in self.headers:
             return self.headers[header]
-        # Logger warn
+        cfg.cfactory_logger.bind(color="orange").opt(colors=True).warn(
+                "No CCModel state file found for header: " + "\n" +
+                f"{header} in {self.out_dir}" + "\n"
+                )
         return None
-
-ccm = CCMAssembler()
 
 def ccm_out_exists() -> bool:
     return os.path.exists(ccm_state_dir)
@@ -155,7 +161,12 @@ def categorize_assemblers() -> None:
         elif isinstance(assembler, assemblers.FinishStage):
             finish_assemblers.append(assembler)
         else:
-            # Logger warn
+            cfg.cfactory_logger.bind(color="orange").opt(colors=True).warn(
+                    "Unrecognized assembler base type for assembler: " +
+                    f"{assembler.assembler_name}" + "\n" +
+                    f"Assembler type: {type(assembler).__name__}" + "\n" +
+                    "Skipping"
+                    )
     return
 
 def resolve_assembler_deps() -> None:
@@ -173,6 +184,8 @@ def resolve_assembler_deps() -> None:
         finish_order = tuple(finish_sorter.static_order())
     return
 
+
+ccm = CCMAssembler()
 def ccmodel_assemble() -> None:
     categorize_assemblers()
     resolve_assembler_deps()

@@ -70,7 +70,6 @@ cfact_cl.add_argument(
         default="cfactory"
         )
 
-cfactory_mode = "cfactory"
 def process_command_line() -> None:
     global cfactory_mode
     opts = cfact_cl.parse_args()
@@ -78,7 +77,7 @@ def process_command_line() -> None:
     factory.clear_ccm = opts.clear_ccm
     factory.force_ccm = opts.force_ccm
     factory.pretty_ccm = opts.ccm_pretty
-    cfactory_mode = opts.mode
+    factory.cfactory_mode = opts.mode
     return
 
 def find_cfscripts() -> None:
@@ -102,17 +101,28 @@ def exec_cfscripts() -> None:
     return
 
 def main() -> None:
+    cfg.cfactory_logger = cfg.logger.bind(
+            project=factory.project_name,
+            stage_log=True
+            )
+    log = cfg.cfactory_logger
+    if factory.cfactory_verbosity:
+        cfg.logger.enable("cfactory")
     if not factory.cfscript_in_root():
-        # Logger error
+        log.bind(color="red").opt(colors=True).error(
+                f"No cfscript.py in specified root: {factory.root}"
+                )
         sys.exit(-1)
     find_cfscripts()
     exec_cfscripts()
     if cfactory_mode == "cfactory":
         factory.factory_assemble()
-    elif cfactory_mode = "ccmodel":
+    elif cfactory_mode == "ccmodel":
         factory.ccmodel_assemble()
     else:
-        # Logger error
+        log.bind(color="red").opt(colors=True).error(
+                f"Unrecognized cfactory mode: {facotyr.cfactory_mode}"
+                )
         sys.exit(-1)
     return
 
