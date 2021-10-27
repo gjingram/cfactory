@@ -5,15 +5,11 @@ cfactory_top = os.path.dirname(
         )
 collections_path = os.path.join(
         cfactory_top,
-        "collections"
+        "assemblers"
         )
 config_path = os.path.join(
         cfactory_top,
         "__config__"
-        )
-std_factories_path = os.path.join(
-        cfactory_top,
-        "std_factories"
         )
 utils_path = os.path.join(
         cfactory_top,
