@@ -29,6 +29,9 @@ keywords = [
 repository = "https://github.com/gjingram/cfactory"
 homepage = ""
 
+[project.scripts]
+cfactory = "cfactory.cfactory:main_cl"
+
 [build-system]
 requires = ["pdm-pep517"]
 build-backend = "pdm.pep517.api"
