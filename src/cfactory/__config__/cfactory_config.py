@@ -3,11 +3,10 @@ import pathlib
 import os
 from loguru import logger
 from warnings import warn
-
-cfactory_top = str(pathlib.Path(os.path.dirname(os.path.realpath(__file__))).parents[0])
+import pdb
 
 def cfactory_stage_log(record):
-    return record["extra"]["stage_log"]
+    return record["extra"]["cf_stage_log"]
 
 def cfactory_stage_fmt(record):
     color = record["extra"]["color"]
@@ -18,17 +17,29 @@ def cfactory_stage_fmt(record):
 
 cf_log_config = {
         "handlers": [
-            {"sink": sys.stdout, "format": cfactory_stage_fmt, "filter": cfactory_stage_log},
+            {
+                "sink": sys.stdout,
+                "format": cfactory_stage_fmt,
+                "filter": cfactory_stage_log
+                },
             ],
         "extra": {
             "project": "",
             "indent": "",
-            "stage_log": False,
+            "cf_stage_log": False,
             "color": ""
             }
         }
 
-logger.configure(**cf_log_config)
+if len(logger._core.handlers) == 0:
+    logger.configure(**cf_log_config)
+else:
+    for hndlr in cf_log_config["handlers"]:
+        logger.add(**hndlr)
+    logger._core.extra.update(cf_log_config["extra"])
+
+if 0 in logger._core.handlers:
+    logger.remove(0)
 logger.disable("cfactory")
 
 cfactory_logger = None
