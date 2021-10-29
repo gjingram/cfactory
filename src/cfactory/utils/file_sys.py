@@ -1,8 +1,6 @@
 import sys
 import os
-import typing
 import traceback
-import functools
 
 class cd(object):
 
@@ -24,5 +22,10 @@ class cd(object):
 def path_from_fs_root(path: str, start_from: str = os.getcwd()) -> str:
     return (
             path if path.startswith(os.sep) else
-            os.path.join(start_dir, path)
+            os.path.normpath(
+                os.path.join(
+                    start_from,
+                    path
+                    )
+                )
             )

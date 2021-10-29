@@ -15,6 +15,7 @@ import cfactory.utils.file_sys as fs
 
 import ccmodel.ccm as ccm
 import ccmodel.reader as ccm_reader
+import pdb
 
 cfact_cl = argparse.ArgumentParser(
         description="CFactory Command Line Interface"
@@ -71,20 +72,25 @@ cfact_cl.add_argument(
         )
 
 def process_command_line() -> None:
-    global cfactory_mode
     opts = cfact_cl.parse_args()
     factory.root = fs.path_from_fs_root(opts.root)
     factory.clear_ccm = opts.clear_ccm
     factory.force_ccm = opts.force_ccm
     factory.pretty_ccm = opts.ccm_pretty
     factory.cfactory_mode = opts.mode
+    factory.cfactory_verbosity = opts.verbosity
     return
 
 def find_cfscripts() -> None:
-    for root, dirs, files in os.path.walk(factory.root):
+    for root, dirs, files in os.walk(factory.root):
         for file_ in files:
             if os.path.basename(file_) == "cfscript.py":
-                factory.cfscripts.append(file_)
+                factory.cfscripts.append(
+                        os.path.join(
+                            root,
+                            file_
+                            )
+                        )
     return
 
 def exec_cfscripts() -> None:
@@ -98,14 +104,18 @@ def exec_cfscripts() -> None:
                         ),
                     globals()
                     )
+            if cfscript == os.path.join(factory.root, "cfscript.py"):
+                factory.ensure_abspaths()
+                cfg.cfactor_logger = cfg.logger.bind(
+                        cf_stage_log=True,
+                        project_name=factory.project_name
+                        )
     return
 
 def main() -> None:
-    cfg.cfactory_logger = cfg.logger.bind(
-            project=factory.project_name,
-            stage_log=True
+    log = cfg.logger.bind(
+            cf_stage_log=True
             )
-    log = cfg.cfactory_logger
     if factory.cfactory_verbosity:
         cfg.logger.enable("cfactory")
     if not factory.cfscript_in_root():
@@ -114,14 +124,18 @@ def main() -> None:
                 )
         sys.exit(-1)
     find_cfscripts()
+    cfg.cfactory_logger = cfg.logger.bind(
+            cf_stage_log=True,
+            project_name=factory.project_name
+            )
     exec_cfscripts()
-    if cfactory_mode == "cfactory":
+    if factory.cfactory_mode == "cfactory":
         factory.factory_assemble()
-    elif cfactory_mode == "ccmodel":
+    elif factory.cfactory_mode == "ccmodel":
         factory.ccmodel_assemble()
     else:
         log.bind(color="red").opt(colors=True).error(
-                f"Unrecognized cfactory mode: {facotyr.cfactory_mode}"
+                f"Unrecognized cfactory mode: {factory.cfactory_mode}"
                 )
         sys.exit(-1)
     return

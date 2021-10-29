@@ -54,6 +54,13 @@ finish_assemblers = []
 finish_sorter = graphlib.TopologicalSorter()
 finish_order = None
 
+def ensure_abspaths() -> None:
+    global root, cache_dir, ccm_state_dir
+    root = fs.path_from_fs_root(root)
+    cache_dir = fs.path_from_fs_root(cache_dir)
+    ccm_state_dir = fs.path_from_fs_root(ccm_state_dir)
+    return
+
 
 class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
 
@@ -91,11 +98,11 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
                     ccs_file_base + ".ccs"
                     )
             self.headers[src_dep] = reader.read(ccs_file_name)
-        self.source_ccs.update(reader.headers_loaded)
+        self.source_ccs.update(reader._headers_loaded)
         self.ccs_catalogue.update(reader._ccs_catalogue)
         return
 
-    def default_ccm_configure() -> None:
+    def default_ccm_configure(self) -> None:
         self.verbosity = cfactory_verbosity
         self.out_dir = ccm_state_dir
         self.delete_out = clear_ccm
@@ -103,7 +110,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
         self.pretty = pretty_ccm
         return
 
-    def get_ccm_recursion_level() -> None:
+    def get_ccm_recursion_level(self) -> None:
         for assembler in assemblers.registry.values():
             if assembler._ccm_rlevel > self.recursion_level:
                 self.recursion_level = assembler._ccm_rlevel
@@ -172,25 +179,31 @@ def categorize_assemblers() -> None:
 def resolve_assembler_deps() -> None:
     for ma in meta_assemblers:
         meta_sorter.add(ma, ma.assembler_dependencies)
-    if len(ma):
+    if len(meta_assemblers):
         meta_order = tuple(meta_sorter.static_order())
     for ea in extension_assemblers:
         extension_sorter.add(ea, ea.assembler_dependencies)
-    if len(ea):
+    if len(extension_assemblers):
         extension_order = tuple(extension_sorter.static_order())
     for fa in finish_assemblers:
         finish_sorter.add(fa, fa.assembler_dependencies)
-    if len(fa):
+    if len(finish_assemblers):
         finish_order = tuple(finish_sorter.static_order())
     return
 
 
 ccm = CCMAssembler()
 def ccmodel_assemble() -> None:
+    tic = time.perf_counter()
     categorize_assemblers()
     resolve_assembler_deps()
     ccm.pre_assemble()
     ccm.assemble()
+    toc = time.perf_counter()
+    cfg.cfactory_logger.bind(color="green").opt(colors=True).info(
+            f"CCM assembly complete in {toc - tic} [s]\n"
+            )
+    print()
     return
 
 def factory_assemble() -> None:
@@ -200,15 +213,54 @@ def factory_assemble() -> None:
 
     ccmodel_assemble()
 
+    factory_tic = time.perf_counter()
     for assembler in assemblers.registry.values():
         assembler.pre_assemble()
 
-    for ma in meta_order:
-        ma.assemble()
-        ma.post_assemble()
-    for ea in extension_order:
-        ea.assemble()
-    for fa in finish_order:
-        fa.assemble()
+    if meta_order is not None:
+        for ma in meta_order:
+            tic = time.perf_counter()
+            ma.assemble()
+            ma.post_assemble()
+            toc = time.perf_counter()
+            cfg.cfactory_logger.info(
+                    f"{ma.assembler_name} assembly complete in {toc - tic} [s]\n"
+                    )
+    else:
+        cfg.cfactory_logger.info(
+                "No meta assemblers specified\n"
+                )
+    print()
 
+    if extension_order is not None:
+        for ea in extension_order:
+            tic = time.perf_counter()
+            ea.assemble()
+            toc = time.perf_counter()
+            cfg.cfactory_logger.info(
+                    f"{ea.assembler_name} assembly complete in {toc - tic} [s]\n"
+                    )
+    else:
+        cfg.cfactory_logger.info(
+                "No extension assemblers specified\n"
+                )
+    print()
+
+    if finish_order is not None:
+        for fa in finish_order:
+            tic = time.perf_counter()
+            fa.assemble()
+            toc = time.perf_counter()
+            cfg.cfactory_logger.info(
+                    f"{fa.assembler_name} assembly complete in {toc - tic} [s]\n"
+                    )
+    else:
+        cfg.cfactory_logger.info(
+                "No finish assemblers specified\n"
+                )
+    print()
+    factory_toc = time.perf_counter()
+    cfg.cfactory_logger.bind(color="green").opt(colors=True).info(
+            f"Factory assemble complete in {factory_toc - factory_tic} [s]\n"
+            )
     return
