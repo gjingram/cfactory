@@ -12,7 +12,7 @@ from typing import (
 import graphlib
 
 import cfactory.__config__.cfactory_config as cfg
-import cfactory.assembler as assemblers
+import cfactory.assemblers.assembler as assemblers
 import cfactory.utils.file_sys as fs
 import ccmodel.ccm as ccm_
 import ccmodel.reader as ccm_reader
@@ -67,8 +67,8 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def __init__(self):
         assemblers.Assembler.__init__(self, "ccm", singleton=True)
         ccm_.CcmOpt.__init__(self)
-
         self.source_dependencies = set(all_source_dependencies())
+        self.n_source_files = -1
         self.source_ccs = None
         self.ccs_catalogue = None
         self.headers = {}
@@ -77,8 +77,14 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def pre_assemble(self) -> None:
         self.get_ccm_recursion_level()
         self.default_ccm_configure()
-
         self.ccm_files = list(self.source_dependencies)
+        self.n_source_files = len(self.ccm_files)
+
+        if self.n_source_files < 1:
+            cfg.cfactory_logger.info(
+                    "CCM no source files specified.\n"
+                    )
+            return
         ccm_.ccm_opt = self
         ccm_.main()
         return
