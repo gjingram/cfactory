@@ -41,6 +41,20 @@ ccm_clang_opts = []
 cfscripts = []
 
 project_name = ""
+project_license = ""
+
+# File Options
+max_cols = 80
+
+# C File Options
+c_max_cols = max_cols
+c_header_ext = ".h"
+c_source_ext = ".c"
+
+# C++ File Options
+cpp_max_cols = max_cols
+cpp_header_ext = ".hh"
+cpp_source_ext = ".cc"
 
 meta_assemblers = []
 meta_sorter = graphlib.TopologicalSorter()
