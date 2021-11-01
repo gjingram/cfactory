@@ -11,8 +11,9 @@ dependencies = [
 [[package]]
 name = "ccmodel"
 version = "0.1.1"
+requires_python = ">=3.8"
 editable = true
-path = "../ccmodel"
+path = "/home/gingram/projects/ccmodel"
 summary = "Clang-10 powered C/C++ code modeling"
 dependencies = [
     "ccm-clang-tools~=0.1",
@@ -31,13 +32,13 @@ summary = "Python package for providing Mozilla's CA Bundle."
 [[package]]
 name = "charset-normalizer"
 version = "2.0.7"
-requires_python = ">=3.5.0"
+requires_python = ">=3.5"
 summary = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 
 [[package]]
 name = "colorama"
 version = "0.4.4"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+requires_python = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 summary = "Cross-platform colored terminal text."
 
 [[package]]
@@ -92,7 +93,7 @@ summary = "Alternative regular expression module, to replace re."
 [[package]]
 name = "requests"
 version = "2.26.0"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+requires_python = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
 summary = "Python HTTP for Humans."
 dependencies = [
     "certifi>=2017.4.17",
@@ -104,7 +105,7 @@ dependencies = [
 [[package]]
 name = "urllib3"
 version = "1.26.7"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+requires_python = ">=2.7,<4.0,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
 
 [[package]]
@@ -114,14 +115,20 @@ requires_python = ">=3.6"
 summary = "WebSocket client for Python with low level API options"
 
 [[package]]
+name = "wheezy-template"
+version = "3.1.0"
+requires_python = ">=3.6"
+summary = "A lightweight template library"
+
+[[package]]
 name = "win32-setctime"
 version = "1.0.3"
 requires_python = ">=3.5"
 summary = "A small Python utility to set file creation time on Windows"
 
 [metadata]
-lock_version = "3.1"
-content_hash = "sha256:489ec3c2b7f6bb6d0b55081d21c3c3581e3906aa89f71d68dc5823fb2d36e9f7"
+lock_version = "3"
+content_hash = "sha256:7ba4c133e7b83bb245941a2c4510837ce26a1f535f2b0db39107305652f2fb4a"
 
 [metadata.files]
 "ccm-clang-tools 0.1.11" = [
@@ -156,8 +163,10 @@ content_hash = "sha256:489ec3c2b7f6bb6d0b55081d21c3c3581e3906aa89f71d68dc5823fb2
     {file = "loguru-0.5.3.tar.gz", hash = "sha256:b28e72ac7a98be3d28ad28570299a393dfcd32e5e3f6a353dec94675767b6319"},
 ]
 "orjson 3.6.4" = [
+    {file = "orjson-3.6.4-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:fc01a15f3101628fd619158daec79b30d7461149735e73542ca8c13be6b835be"},
     {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:48a69fed90f551bf9e9bb7a63e363fed4f67fc7c6e6bfb057054dc78f6721e9e"},
     {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:3722f02f50861d5e2a6be9d50bfe8da27a5155bb60043118a4e1ceb8c7040cf7"},
+    {file = "orjson-3.6.4-cp310-none-win_amd64.whl", hash = "sha256:231a99a728322d0271e970b149c57deb67315e6837e6cd4166cf51d30161700c"},
     {file = "orjson-3.6.4-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:6cd300421b41f7e84e388b1792a18c3fc4c440ae3039434b9320956be05f0102"},
     {file = "orjson-3.6.4-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:e55ef66ee1d35b1c43db275aff3a1ba7e0408b31e624912a612bd799df14e73e"},
     {file = "orjson-3.6.4-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eef8d332af8e6f7d6d2c1f3b5384c8d239800c1405b136da5f1710e802918d57"},
@@ -241,6 +250,9 @@ content_hash = "sha256:489ec3c2b7f6bb6d0b55081d21c3c3581e3906aa89f71d68dc5823fb2
 "websocket-client 1.2.1" = [
     {file = "websocket_client-1.2.1-py2.py3-none-any.whl", hash = "sha256:0133d2f784858e59959ce82ddac316634229da55b498aac311f1620567a710ec"},
     {file = "websocket-client-1.2.1.tar.gz", hash = "sha256:8dfb715d8a992f5712fff8c843adae94e22b22a99b2c5e6b0ec4a1a981cc4e0d"},
+]
+"wheezy-template 3.1.0" = [
+    {file = "wheezy.template-3.1.0.tar.gz", hash = "sha256:e11007cac73368dce12998e34b66c476016bb461471ffc1e4d56e84002ec960f"},
 ]
 "win32-setctime 1.0.3" = [
     {file = "win32_setctime-1.0.3-py3-none-any.whl", hash = "sha256:dc925662de0a6eb987f0b01f599c01a8236cb8c62831c22d9cada09ad958243e"},

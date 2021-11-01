@@ -8,7 +8,8 @@ authors = [
 dependencies = [
     "loguru~=0.5",
     "graphlib-backport~=1.0",
-    "-e file:///home/gabriel/projects/ccmodel#egg=ccmodel",
+    "-e file:///home/gingram/projects/ccmodel#egg=ccmodel",
+    "wheezy-template~=3.1",
 ]
 requires-python = ">=3.8"
 dynamic = ["classifiers"]
