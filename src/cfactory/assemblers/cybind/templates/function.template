@@ -1,0 +1,43 @@
+@def function_name(func):
+@(func.qual_name)
+@end
+
+@def write_arg_name(arg):
+@("" if arg.is_anonymous else arg.name)
+@end
+
+@def ext_if_default(arg):
+@(f" = {arg.default_value}" if arg.has_default else "")
+@end
+
+@def write_decl_parms(args):
+@for arg in args:
+@write_arg_name(arg)@ext_if_default(arg),
+@end
+@end
+
+@def declare_function(func)
+@func.type @function_name(func)(
+    @write_decl_parms(func.parameters)
+    )
+@end
+
+@def write_cython_parms(args):
+@for arg in args:
+@(f"x{arg.index}" if arg.is_anonymous else arg.name) @ext_if_default(arg),
+@end
+@end
+
+@def fill_args(args):
+@for arg in args:
+@(f"x{arg.index}" if arg.is_anonymous else arg.name),
+@end
+
+@def bind_function(func)
+cpdef @func.type @function_name(func)(
+    @write_cython_parms(func.parameters)
+    ):
+    return _@function_name()(
+        @fill_args(func.parameters)
+        )
+@end
