@@ -20,6 +20,7 @@ import pdb
 
 # CFactory config
 root = os.getcwd()
+project_root = ""
 cache_dir = os.path.join(
         os.getcwd(),
         "cfactory"
@@ -69,8 +70,12 @@ finish_sorter = graphlib.TopologicalSorter()
 finish_order = None
 
 def ensure_abspaths() -> None:
-    global root, cache_dir, ccm_state_dir
+    global root, project_root, cache_dir, ccm_state_dir
     root = fs.path_from_fs_root(root)
+    if project_root == "":
+        project_root = root
+    else:
+        project_root = fs.path_from_fs_root(project_root)
     cache_dir = fs.path_from_fs_root(cache_dir)
     ccm_state_dir = fs.path_from_fs_root(ccm_state_dir)
     return

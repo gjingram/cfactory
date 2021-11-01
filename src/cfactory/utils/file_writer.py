@@ -30,6 +30,15 @@ class FileSection(object):
         file_object.write(write_text)
         return
 
+    def add_text(self, text: str) -> bool:
+        if self.section_text != "":
+            cfg.cfactory_logger.bind(color="orange").opt(colors=True).warn(
+                    f"{self.section_name} text already set."
+                    )
+            return False
+        self.section_text = text
+        return True
+
     def add_subsection(self, sub: "FileSection") -> None:
         if sub is None:
             return
