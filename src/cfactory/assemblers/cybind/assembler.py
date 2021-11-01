@@ -15,35 +15,18 @@ import cfactory.utils.file_writer as fw
 import cfactory.utils.file_sys as fs
 import cfactory.__config__.cfactory_config as cfg
 
+import cfactory.assemblers.cybind.cybind as cybind`
 from cfactory.assemblers.cybind.cybind_writers import (
         PxdWriter,
         PyxWriter
         )
-
-module_registry = {}
-header_map = {}
-
-def register_module(cybind_module: "CybindModule") -> bool:
-    if cybind_module in module_registry.values():
-        cfg.cfactory_logger.bind(color="red").opt(colors=True).error(
-            f"Cybind moodule \"{cybind_module.module_name}\"" +
-            "already registered"
-            )
-        sys.exit(-1)
-    module_registry[cybind_module.module_name] = cybind_module
-    return
-
-def map_headers() -> None:
-    for cybind_module in module_registry.values():
-        for module_header in cybind_module.module_headers:
-            header_map[module_header] = cybind_module.module_name
-    return
 
 
 class CybindModule(object):
 
     def __init__(
             self,
+            module_header: str,
             module_name: str,
             assembler: "CybindAssembler"):
 
@@ -61,6 +44,7 @@ class CybindModule(object):
                     self.module_path_noext.lstrip(os.sep)
                     )
                 )
+        self.header = module_header
         self.pyx = self.out_file_noext + ".pyx"
         self.pxd = self.out_file_noext + ".pxd"
         self.pyx_writer = PyxWriter(
@@ -75,7 +59,7 @@ class CybindModule(object):
                 license_section=self.assembler.license_section,
                 footer_section=self.assembler.footer_section
                 )
-        register_module(self)
+        cybind.register_module(self)
         return
 
     @classmethod
