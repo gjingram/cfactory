@@ -1,0 +1,47 @@
+@require(name, inherit, ctors, public_vars, public_methods, nested_classes)
+@import "function.template" as function
+@import "enum.template" as enum
+
+cdef class Py{@name}(@for icls in inherit:
+                @icls,
+                @end):
+
+    cdef {@name} *this
+
+    cdef __cinit__(self, *args, **kwargs):
+        @for ctor in ctors:
+        if @ctor.param_types_tuple == @((type(arg) for arg in args)):
+            self.this = new @{name}(*args)
+        @end
+        return
+
+    def __init__(self, *args, **kwargs):
+        @for icls in inherit:
+        @icls(self, *args, **kwargs)
+        @end
+        
+        return
+
+    def __dealloc__(self):
+        if self.this != NULL:
+            del self.this
+        return
+
+    @for pvar in public_vars:
+    @property
+    def @{pvar.name}():
+        return self._ptr.@pvar.name
+
+    @{@pvar}.setter
+    def @{pvar.name}(@pvar.type x):
+        self._ptr.@{pvar.name} = x
+        return
+    @end
+
+    @for pmeth in public_methods:
+    def @{pmeth.name}(
+                    self,
+                    @function.write_cython_parms(pmeth.parameters)
+                    ):
+        return self._ptr.@{pmeth.name}(@function.fill_args(pmeth.parameters))
+    @end

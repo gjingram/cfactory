@@ -1,3 +1,0 @@
-@require(vars)
-@for var in vars:
-

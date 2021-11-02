@@ -1,0 +1,48 @@
+@require(mtime_utc, author, binds, header, namespace)
+@import "class.template" as class_
+@import "function.template" as function
+@import "cybind_header.template" as header
+@import "import_section.template" as imports
+
+@def cdef_extern_line():
+@if namespace.name != "":
+cdef extern from "@header" namespace @namespace.name:
+@else:
+cdef extern from "@header":
+@end
+@end
+
+@def enum_decl_line(enum):
+@if enum.scope is not None:
+cpdef enum class @{enum.name}(int):
+@else:
+cpdef enum @enum.name:
+@end
+
+@cdef_extern_line()
+
+    @for tdef in ns.typedefs:
+    ctypedef @tdef.underlying_type @tdef.type
+    @end
+
+    @for var in ns.variables:
+    @var.type @var.name
+    @end
+
+    @for fn in ns.functions:
+    @function.declare_function(fn)
+
+    @end
+
+    @for klass in [x for x in ns.classes if not x.is_abstract]:
+    cdef cppclass @class.name
+
+    @end
+
+    @for enum in ns.enumerations:
+    @enum_decl_line(enum)
+        @for enum_const in enum.enum_constants:
+        @enum.name,
+        @end
+    
+    @end
