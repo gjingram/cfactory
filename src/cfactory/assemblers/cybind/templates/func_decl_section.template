@@ -1,3 +1,0 @@
-@require(funcs)
-@for func in funcs:
-@func.type @(func.write_qual_name)(@for parm
