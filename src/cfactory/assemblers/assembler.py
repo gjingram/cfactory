@@ -110,8 +110,13 @@ class Assembler(object):
 
 class MetaStage(Assembler):
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(
+            self,
+            name: str,
+            singleton: bool = False):
+        super().__init__(
+                name,
+                singleton=singleton)
         return
 
     def _check_dependency_valid(self, dep: Assembler) -> bool:
@@ -135,8 +140,13 @@ class MetaStage(Assembler):
 
 class ExtensionStage(Assembler):
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(
+            self,
+            name: str,
+            singleton: bool = False):
+        super().__init__(
+                name,
+                singleton=singleton)
         return
 
     def _check_dependency_valid(self, dep: Assembler) -> bool:
@@ -156,8 +166,14 @@ class ExtensionStage(Assembler):
 
 class FinishStage(Assembler):
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(
+            self,
+            name: str,
+            singleton: bool = False):
+        super().__init__(
+                name,
+                singleton=singleton
+                )
         return
 
     def _check_dependency_valid(self, dep: Assembler) -> bool:
