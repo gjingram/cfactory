@@ -1,7 +1,8 @@
 import sys
 import cfactory.__config__.cfactory_config as cfg
+import cfactory.factory as factory
 
-
+cybind_project_root = ""
 module_registry = {}
 header_map = {}
 

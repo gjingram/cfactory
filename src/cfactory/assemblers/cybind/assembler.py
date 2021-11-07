@@ -15,11 +15,12 @@ import cfactory.utils.file_writer as fw
 import cfactory.utils.file_sys as fs
 import cfactory.__config__.cfactory_config as cfg
 
-import cfactory.assemblers.cybind.cybind as cybind`
+import cfactory.assemblers.cybind.cybind as cybind
 from cfactory.assemblers.cybind.cybind_writers import (
         PxdWriter,
         PyxWriter
         )
+import pdb
 
 
 class CybindModule(object):
@@ -48,17 +49,16 @@ class CybindModule(object):
         self.pyx = self.out_file_noext + ".pyx"
         self.pxd = self.out_file_noext + ".pxd"
         self.pyx_writer = PyxWriter(
-                self.module_name,
                 self.pyx,
                 license_section=self.assembler.license_section,
                 footer_section=self.assembler.footer_section
                 )
         self.pxd_writer = PxdWriter(
-                self.module_name,
                 self.pxd,
                 license_section=self.assembler.license_section,
                 footer_section=self.assembler.footer_section
                 )
+        pdb.set_trace()
         cybind.register_module(self)
         return
 
@@ -67,12 +67,27 @@ class CybindModule(object):
             cls,
             assembler: "CybindAssembler",
             header: str) -> "CythonModule":
-        module_name = (
-                os.path.relpath(header, assembler.package_dir).replace(
-                    os.sep, "."
+        if assembler.package_dir == "":
+            assembler.package_dir = (
+                    factory.project_root if factory.project_root != "" else
+                    os.getcwd()
                     )
+        module_reldir = os.path.dirname(
+                os.path.relpath(
+                    header,
+                    assembler.package_dir
+                    )
+                ).replace(
+                        os.sep,
+                        '.'
+                        )
+        module_basename = os.path.basename(header).split('.')[0]
+        module_name = module_reldir + "." + module_basename
+        return CybindModule(
+                header,
+                module_name,
+                assembler
                 )
-        return CybindModule(module_name, assembler)
 
 
     def write_files(self) -> None:
@@ -86,17 +101,25 @@ class CybindModule(object):
         return
 
 
-class CybindAssembler(assembler.FinishAssembler):
+class CybindAssembler(assembler.FinishStage):
 
-    def __init__(self, package_name: str):
+    def __init__(
+            self,
+            package_name: str,
+            package_dir: str = os.getcwd(),
+            out_dir: str = "cybind"):
         super().__init__(
                 "cybind." + package_name,
                 singleton=False
                 )
 
         self.package_name = package_name
-        self.cybind_out = "cybind"
-        self.package_dir = ""
+        self.cybind_out = os.path.join(
+                package_dir,
+                out_dir
+                )
+                
+        self.package_dir = package_dir
         self._file_globs = []
 
         self.license_file = ""
@@ -108,33 +131,39 @@ class CybindAssembler(assembler.FinishAssembler):
         self._headers = []
         self._cybind_modules = []
 
-        self._ccm_rlevel = assembler.CCMRecursionLvel.INHERITED
+        self._ccm_rlevel = assembler.CCMRecursionLevel.INHERITED
 
         return
 
     def _add_file(self, file_: str) -> None:
-        if "*" in file:
-            self._headers.extend(glob.glob(file_))
+        if "*" in file_:
+            self._headers.extend(
+                    [
+                        os.path.abspath(x) for x in
+                        glob.glob(file_)
+                        ]
+                    )
         else:
-            self._headers.append(file_)
+            self._headers.append(os.path.abspath(file_))
         return
 
     def add_files(self, files: Union[str, List[str]]) -> None:
+        pdb.set_trace()
         if type(files) is str:
             self._add_file(files)
         elif type(files) is list:
             for file_ in files:
                 self._add_file(file_)
+        self.source_dependencies = set(self._headers)
         return
 
     def pre_assemble(self) -> None:
-        self.source_dependencies = set(self._headers)
         for header in self._headers:
             module = CybindModule.from_header(self, header)
-            module
             self._cybind_modules.append(
-                    CybindModule.from_header(self, header)
+                    module
                     )
+        return
 
 
 

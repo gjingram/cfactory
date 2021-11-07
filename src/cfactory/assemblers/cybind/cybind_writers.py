@@ -14,9 +14,15 @@ import cfactory.utils.file_writer as fw
 import cfactory.utils.pyfamily_file as pyfile
 import cfactory.utils.file_sys as fs
 import cfactory.__config__.cfactory_config as cfg
+from cfactory.assemblers.cybind.cybind_sections import (
+        HeaderSection,
+        ImportSection,
+        PxdBodySection,
+        PyxBodySection
+        )
 
 
-class CyWriter(pyfiles.PyFileWriter):
+class CybindWriter(pyfile.PyFileWriter):
 
     def __init__(
             self,
@@ -37,18 +43,27 @@ class CyWriter(pyfiles.PyFileWriter):
         super().__init__(
                 displayname,
                 path,
-                license_section,
-                None,
-                None,
-                footer_section,
-                None
+                license_section=license_section,
+                license_file=None,
+                license_text=None,
+                footer_section=footer_section,
+                footer_text=None
                 )
         
         self._ccm = factory.ccm
         self._ccms = {}
         self._headers_in_module = []
         self.writeables = {}
+
+        self.header.add_subsection(
+                HeaderSection()
+                )
+        self.import_section = ImportSection()
+
         return
+
+    def make_cybind_context(self, writeable: dict) -> dict:
+        pass
 
     def add_header(self, header: str) -> None:
         if header not in self._headers_in_module:
@@ -61,7 +76,7 @@ class CyWriter(pyfiles.PyFileWriter):
             self._ccms[header] = ccms
             t_unit = ccms.translation_unit
 
-            writeable = {]
+            writeable = {}
             writeable["linkage_specs"] = t_unit.linkage_specs
             writeable["classes"] = t_unit.classes
             writeable["variables"] = t_unit.variables
@@ -72,58 +87,38 @@ class CyWriter(pyfiles.PyFileWriter):
 
         return
 
-    def make_header_section(self) -> None:
-        self.add_file_section(self.header)
-        return self.header
 
-    def make_import_section(self) -> None:
-        out = fw.FileSection("import")
-        self.file_sections.append(out)
-        return out
-
-    def make_class_section(self) -> None:
-        out = fw.FileSection("classes")
-        self.file_sections.append(out)
-        return out
-
-    def make_variable_section(self) -> None:
-        out = fw.FileSection("variables")
-        self.file_sections.append(out)
-        return out
-
-    def make_function_section(self) -> None:
-        out = fw.FileSection("functions")
-        self.file_sections.append(out)
-        return out
-
-
-class PxdWriter(CyWriter):
+class PxdWriter(CybindWriter):
 
     def __init__(
             self,
             path: str,
             license_section: Optional[fw.FileSection] = None,
-            footer_section: Optional[fw.FileSection] = None,
+            footer_section: Optional[fw.FileSection] = None
+            ):
         super().__init__(
                 path,
-                license_section,
-                footer_section,
+                license_section=license_section,
+                footer_section=footer_section,
                 )
+        self.pxd_body = PxdBodySection()
         return
 
 
-class PyxWriter(CyWriter):
+class PyxWriter(CybindWriter):
 
     def __init__(
             self,
             path: str,
             license_section: Optional[fw.FileSection] = None,
-            footer_section: Optional[fw.FileSection] = None,
+            footer_section: Optional[fw.FileSection] = None
+            ):
         super().__init__(
                 path,
-                license_section,
-                footer_section,
+                license_section=license_section,
+                footer_section=footer_section,
                 )
+        self.pyx_body = PyxBodySection()
         return
 
 
