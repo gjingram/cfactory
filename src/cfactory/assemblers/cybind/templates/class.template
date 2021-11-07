@@ -1,23 +1,23 @@
 @require(name, inherit, ctors, public_vars, public_methods, nested_classes)
 @import "function.template" as function
-@import "enum.template" as enum
 
-cdef class Py{@name}(@for icls in inherit:
-                @icls,
+@def write_class(cls):
+cdef class Py{@cls.name}(@for icls in cls.bases:
+                @icls.name,
                 @end):
 
-    cdef {@name} *this
+    cdef {@cls.name} *this
 
     cdef __cinit__(self, *args, **kwargs):
-        @for ctor in ctors:
+        @for ctor in cls.ctors:
         if @ctor.param_types_tuple == @((type(arg) for arg in args)):
-            self.this = new @{name}(*args)
+            self.this = new @{cls.name}(*args)
         @end
         return
 
     def __init__(self, *args, **kwargs):
-        @for icls in inherit:
-        @icls(self, *args, **kwargs)
+        @for icls in cls.bases:
+        @{icls.name}.__init__(self, *args, **kwargs)
         @end
         
         return
@@ -27,7 +27,7 @@ cdef class Py{@name}(@for icls in inherit:
             del self.this
         return
 
-    @for pvar in public_vars:
+    @for pvar in [x for x in cls.variables if x.access_specifier == "public"]:
     @property
     def @{pvar.name}():
         return self._ptr.@pvar.name
@@ -36,12 +36,14 @@ cdef class Py{@name}(@for icls in inherit:
     def @{pvar.name}(@pvar.type x):
         self._ptr.@{pvar.name} = x
         return
+
     @end
 
-    @for pmeth in public_methods:
+    @for pmeth in [x for x in cls.functions if x.access_specifier == "public"]:
     def @{pmeth.name}(
                     self,
                     @function.write_cython_parms(pmeth.parameters)
                     ):
         return self._ptr.@{pmeth.name}(@function.fill_args(pmeth.parameters))
     @end
+@end

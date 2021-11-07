@@ -1,8 +1,6 @@
-@require(mtime_utc, author, binds, header, namespace)
+@require(header, namespace)
 @import "class.template" as class_
 @import "function.template" as function
-@import "cybind_header.template" as header
-@import "import_section.template" as imports
 
 @def cdef_extern_line():
 @if namespace.name != "":
