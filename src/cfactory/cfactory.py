@@ -96,9 +96,10 @@ def find_cfscripts() -> None:
 def exec_cfscripts() -> None:
     for cfscript in factory.cfscripts:
         with fs.cd(os.path.dirname(cfscript)):
+            cfscript_file = open(cfscript, "r")
             exec(
                     compile(
-                        open(cfscript, "r").read(),
+                        cfscript_file.read(),
                         cfscript,
                         "exec"
                         ),
@@ -110,6 +111,7 @@ def exec_cfscripts() -> None:
                         cf_stage_log=True,
                         project_name=factory.project_name
                         )
+            cfscript_file.close()
     return
 
 def main() -> None:

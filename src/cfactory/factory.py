@@ -86,7 +86,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def __init__(self):
         assemblers.Assembler.__init__(self, "ccm", singleton=True)
         ccm_.CcmOpt.__init__(self)
-        self.source_dependencies = set(all_source_dependencies())
+        self.source_dependencies = None
         self.n_source_files = -1
         self.source_ccs = None
         self.ccs_catalogue = None
@@ -94,6 +94,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
         return
 
     def pre_assemble(self) -> None:
+        self.source_dependencies = set(all_source_dependencies())
         self.get_ccm_recursion_level()
         self.default_ccm_configure()
         self.ccm_files = list(self.source_dependencies)
@@ -104,6 +105,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
                     "CCM no source files specified.\n"
                     )
             return
+
         ccm_.ccm_opt = self
         ccm_.main()
         return
@@ -112,19 +114,27 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
         self.source_ccs = {}
         self.ccs_catalogue = {}
         reader = ccm_reader.CcsReader(self.out_dir)
+        tic = time.perf_counter()
         for src_dep in self.source_dependencies:
-            ccs_file_dir = os.path.join(
-                    self.out_dir,
-                    os.path.dirname(src_dep.lstrip(os.sep))
+            ccs_file_dir = os.path.dirname(
+                    src_dep.lstrip(os.sep)
                     )
-            ccs_file_base = os.path.basename(src_dep)
+            ccs_file_base = (
+                    os.path.basename(src_dep).split('.')[0]
+                    )
             ccs_file_name = os.path.join(
                     ccs_file_dir,
                     ccs_file_base + ".ccs"
                     )
             self.headers[src_dep] = reader.read(ccs_file_name)
+        pdb.set_trace()
         self.source_ccs.update(reader._headers_loaded)
         self.ccs_catalogue.update(reader._ccs_catalogue)
+        toc = time.perf_counter()
+
+        cfg.cfactory_logger.info(
+                f"CCM state loading completed in {toc - tic} [s]"
+                )
         return
 
     def default_ccm_configure(self) -> None:
@@ -202,16 +212,17 @@ def categorize_assemblers() -> None:
     return
 
 def resolve_assembler_deps() -> None:
+    global meta_order, extension_order, finish_order
     for ma in meta_assemblers:
-        meta_sorter.add(ma, ma.assembler_dependencies)
+        meta_sorter.add(ma, tuple(ma.assembler_dependencies))
     if len(meta_assemblers):
         meta_order = tuple(meta_sorter.static_order())
     for ea in extension_assemblers:
-        extension_sorter.add(ea, ea.assembler_dependencies)
+        extension_sorter.add(ea, tuple(ea.assembler_dependencies))
     if len(extension_assemblers):
         extension_order = tuple(extension_sorter.static_order())
     for fa in finish_assemblers:
-        finish_sorter.add(fa, fa.assembler_dependencies)
+        finish_sorter.add(fa, tuple(fa.assembler_dependencies))
     if len(finish_assemblers):
         finish_order = tuple(finish_sorter.static_order())
     return
