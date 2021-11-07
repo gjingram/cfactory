@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-from tyuping import Optional
+from typing import Optional
 import time
 
 import cfactory.__config__.cfactory_config as cfg
@@ -18,7 +18,7 @@ class FileSection(object):
 
     def write_section(
             self,
-            file_object: file,
+            file_object: "TextIOWrapper",
             extras: Optional[dict] = None) -> None:
         if self.section_text == "":
             return
@@ -107,7 +107,7 @@ class CodeWriter(FileWriter):
     def __init__(
             self,
             displayname: str,
-            path str,
+            path: str,
             license_section: Optional[FileSection] = None,
             license_file: Optional[str] = None,
             license_text: Optional[str] = None,

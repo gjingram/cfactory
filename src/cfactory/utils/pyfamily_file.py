@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-from tyuping import Optional
+from typing import Optional
 
 import cfactory.utils.file_writer as fw
 
