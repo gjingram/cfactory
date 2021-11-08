@@ -95,7 +95,11 @@ class FileWriter(object):
         self.file_sections.append(section)
         return
 
+    def initialize_writer(self) -> None:
+        pass
+
     def write_file(self) -> None:
+        self.initialize_writer()
         with open(self.file_path, "w") as file_:
             for section in self.file_sections:
                 section.write_section(file_, self.extras)
@@ -139,6 +143,3 @@ class CodeWriter(FileWriter):
         self.short_comment_wrapper = None
 
         return
-
-    def initialize_writer(self) -> None:
-        pass
