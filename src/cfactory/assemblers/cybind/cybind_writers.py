@@ -26,9 +26,11 @@ class CybindWriter(pyfile.PyFileWriter):
 
     def __init__(
             self,
+            header: str,
             path: str,
             license_section: Optional[fw.FileSection] = None,
             footer_section: Optional[fw.FileSection] = None,
+            author: str = ""
             ):
 
         display_path = os.path.relpath(
@@ -37,8 +39,10 @@ class CybindWriter(pyfile.PyFileWriter):
                 )
         display_root, file_name = os.path.split(display_path)
         displayname = ".".join(
+                [
                 *display_root.split(os.sep),
                 file_name
+                ]
                 )
         super().__init__(
                 displayname,
@@ -49,12 +53,9 @@ class CybindWriter(pyfile.PyFileWriter):
                 footer_section=footer_section,
                 footer_text=None
                 )
-        
-        self._ccm = factory.ccm
-        self._ccms = {}
-        self._headers_in_module = []
-        self.writeables = {}
-
+      
+        self.author = author
+        self.header_path = header
         self.header.add_subsection(
                 HeaderSection()
                 )
@@ -62,29 +63,20 @@ class CybindWriter(pyfile.PyFileWriter):
 
         return
 
-    def make_cybind_context(self, writeable: dict) -> dict:
-        pass
-
-    def add_header(self, header: str) -> None:
-        if header not in self._headers_in_module:
-            self._headers_in_module.append(header)
-        return
-
-    def resolve_writeables(self) -> None:
-        for header in self._headers_in_module:
-            ccms = self._ccm[header]
-            self._ccms[header] = ccms
-            t_unit = ccms.translation_unit
-
-            writeable = {}
-            writeable["linkage_specs"] = t_unit.linkage_specs
-            writeable["classes"] = t_unit.classes
-            writeable["variables"] = t_unit.variables
-            writeable["functions"] = t_unit.functions
-            writeable["namespaces"] = t_unit.namespaces
-            writeable["typedefs"] = t_unit.typedefs
-            self.writeables[header] = writeable
-
+    def write_file(
+            self,
+            t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
+            ) -> None:
+        pdb.set_trace()
+        cybind_header = self.header.subsections[-1]
+        cybind_header.header = os.path.relpath(
+                self.header_path,
+                cybind.cybind_project_root
+                )
+        cybind_header.author = self.author
+        cybind_header.make_context(t_unit)
+        self.import_section.make_context(t_unit)
+        CodeWriter.write_file(self)
         return
 
 
@@ -92,16 +84,39 @@ class PxdWriter(CybindWriter):
 
     def __init__(
             self,
+            header: str,
             path: str,
             license_section: Optional[fw.FileSection] = None,
-            footer_section: Optional[fw.FileSection] = None
+            footer_section: Optional[fw.FileSection] = None,
+            author: str = ""
             ):
         super().__init__(
                 path,
                 license_section=license_section,
                 footer_section=footer_section,
+                author=author
                 )
         self.pxd_body = PxdBodySection()
+        self.add_file_section(self.pxd_body)
+        return
+
+    def write_file(
+            self,
+            t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
+            ) -> None:
+        pdb.set_trace()
+        self.pxd_body.header = self.header
+        self.pxd_body.namespace = t_unit
+        self.pxd_body.make_context(t_unit)
+        for ns in t_unit.namespaces:
+            new_sub = PxdBodySection()
+            new_sub.header = self.header
+            new_sub.namespace = ns
+            new_sub.make_context(t_unit)
+            self.pxd_body.add_subsection(
+                    new_sub
+                    )
+        CybindWriter.write_file(self)
         return
 
 
@@ -109,17 +124,37 @@ class PyxWriter(CybindWriter):
 
     def __init__(
             self,
+            header: str,
             path: str,
             license_section: Optional[fw.FileSection] = None,
-            footer_section: Optional[fw.FileSection] = None
+            footer_section: Optional[fw.FileSection] = None,
+            author: str = ""
             ):
         super().__init__(
                 path,
                 license_section=license_section,
                 footer_section=footer_section,
+                author=author
                 )
         self.pyx_body = PyxBodySection()
+        self.add_file_section(self.pyx_body)
         return
 
-
-
+    def write_file(
+            self,
+            t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
+            ) -> None:
+        pdb.set_trace()
+        self.pyx_body.header = self.header
+        self.pyx_body.namespace = t_unit
+        self.pyx_body.make_context(t_unit)
+        for ns in t_unit.namespaces:
+            new_sub = PyxBodySection()
+            new_sub.header = self.header
+            new_sub.namespace = ns
+            new_sub.make_context(t_unit)
+            self.pyx_body.add_subsection(
+                    new_sub
+                    )
+        CybindWriter.write_file(self)
+        return
