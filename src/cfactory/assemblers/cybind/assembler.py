@@ -29,8 +29,10 @@ class CybindModule(object):
             self,
             module_header: str,
             module_name: str,
-            assembler: "CybindAssembler"):
+            assembler: "CybindAssembler",
+            author: str = ""):
 
+        self.module_author = author
         self.module_name = module_name
         self.module_path_noext = (
                 self.module_name.replace(
@@ -51,22 +53,37 @@ class CybindModule(object):
         self.pyx_writer = PyxWriter(
                 self.pyx,
                 license_section=self.assembler.license_section,
-                footer_section=self.assembler.footer_section
+                footer_section=self.assembler.footer_section,
+                author=self.module_author
                 )
         self.pxd_writer = PxdWriter(
                 self.pxd,
                 license_section=self.assembler.license_section,
-                footer_section=self.assembler.footer_section
+                footer_section=self.assembler.footer_section,
+                author=self.module_author
                 )
-        pdb.set_trace()
         cybind.register_module(self)
+
+        self.ccms = factory.ccm[self.header]
+        self.cimport = []
+        self.pyimport = []
+
+        # TODO: Some sort of import resolver that parses
+        # types and determines cimport/import statements
+        # required at the top of the cybind files-- e.g.,
+        # it might see an Eigen array and map it to a
+        # numpy.ndarray, requiring a cimport/import numpy
+        # statement.
+        self.import_resolver = None
+        self.resolve_imports()
         return
 
     @classmethod
     def from_header(
             cls,
             assembler: "CybindAssembler",
-            header: str) -> "CythonModule":
+            header: str,
+            author: str = "") -> "CythonModule":
         if assembler.package_dir == "":
             assembler.package_dir = (
                     factory.project_root if factory.project_root != "" else
@@ -86,14 +103,36 @@ class CybindModule(object):
         return CybindModule(
                 header,
                 module_name,
-                assembler
+                assembler,
+                author=author
                 )
 
+    def resolve_imports(self) -> None:
+        #self.import_resolver.resolve_imports(self.ccms)
+        #self.cimport.extend(self.import_resolver.cimports)
+        #self.pyimport.extend(self.import_resolver.pyimports)
+        self.cimport.extend(
+                [
+                    cybind.header_map[x] for x in self.ccms.includes if
+                    x in cybind.header_map
+                    ]
+                )
+
+        # TODO: import resolver ought to also check includes for existing
+        # cython standard cimports to handle things like the standard
+        # library.
+
+        self.pyx_writer.import_section.cimports = self.cimport
+        self.pxd_writer.import_section.cimports = self.cimport
+        self.pyx_writer.import_section.pyimports = self.pyimport
+        self.pxd_writer.import_section.pyimports = self.pyimport
+        return
 
     def write_files(self) -> None:
+        t_unit = self.ccms.translation_unit
         tic = time.perf_counter()
-        self.pxd_writer.write_file()
-        self.pyx_writer.write_file()
+        self.pxd_writer.write_file(t_unit)
+        self.pyx_writer.write_file(t_unit)
         toc = time.perf_counter()
         cfg.cfactory_logger.info(
                 f"{self.module_name}.pxd/pyx written in {toc - tic} [s]"
@@ -107,12 +146,14 @@ class CybindAssembler(assembler.FinishStage):
             self,
             package_name: str,
             package_dir: str = os.getcwd(),
-            out_dir: str = "cybind"):
+            out_dir: str = "cybind",
+            author: str = ""):
         super().__init__(
                 "cybind." + package_name,
                 singleton=False
                 )
 
+        self.author = author
         self.package_name = package_name
         self.cybind_out = os.path.join(
                 package_dir,
@@ -148,7 +189,6 @@ class CybindAssembler(assembler.FinishStage):
         return
 
     def add_files(self, files: Union[str, List[str]]) -> None:
-        pdb.set_trace()
         if type(files) is str:
             self._add_file(files)
         elif type(files) is list:
@@ -159,10 +199,14 @@ class CybindAssembler(assembler.FinishStage):
 
     def pre_assemble(self) -> None:
         for header in self._headers:
-            module = CybindModule.from_header(self, header)
+            module = CybindModule.from_header(
+                    self,
+                    header,
+                    author=self.author)
             self._cybind_modules.append(
                     module
                     )
+        pdb.set_trace()
         return
 
 
