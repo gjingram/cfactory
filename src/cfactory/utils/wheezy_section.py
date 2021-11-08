@@ -10,7 +10,9 @@ from wheezy.template.loader import FileLoader
 
 class WheezySection(object):
 
-    def __init__(self, template: str):
+    def __init__(
+            self,
+            search: List[str]):
         self.search_paths = search
         self.engine = None
         self.loaders = []
