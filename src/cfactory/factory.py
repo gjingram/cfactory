@@ -157,6 +157,7 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def __getitem__(
             self,
             header: str) -> Optional["ccmodel.code_models.header.Header"]:
+        pdb.set_trace()
         if header in self.headers:
             return self.headers[header]
         cfg.cfactory_logger.bind(color="orange").opt(colors=True).warn(
