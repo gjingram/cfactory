@@ -20,6 +20,7 @@ from cfactory.assemblers.cybind.cybind_sections import (
         PxdBodySection,
         PyxBodySection
         )
+import pdb
 
 
 class CybindWriter(pyfile.PyFileWriter):
@@ -67,7 +68,6 @@ class CybindWriter(pyfile.PyFileWriter):
             self,
             t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
             ) -> None:
-        pdb.set_trace()
         cybind_header = self.header.subsections[-1]
         cybind_header.header = os.path.relpath(
                 self.header_path,
@@ -76,7 +76,7 @@ class CybindWriter(pyfile.PyFileWriter):
         cybind_header.author = self.author
         cybind_header.make_context(t_unit)
         self.import_section.make_context(t_unit)
-        CodeWriter.write_file(self)
+        fw.CodeWriter.write_file(self)
         return
 
 
@@ -91,6 +91,7 @@ class PxdWriter(CybindWriter):
             author: str = ""
             ):
         super().__init__(
+                header,
                 path,
                 license_section=license_section,
                 footer_section=footer_section,
@@ -104,19 +105,18 @@ class PxdWriter(CybindWriter):
             self,
             t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
             ) -> None:
-        pdb.set_trace()
-        self.pxd_body.header = self.header
+        self.pxd_body.header = self.header_path
         self.pxd_body.namespace = t_unit
         self.pxd_body.make_context(t_unit)
         for ns in t_unit.namespaces:
             new_sub = PxdBodySection()
-            new_sub.header = self.header
+            new_sub.header = self.header_path
             new_sub.namespace = ns
             new_sub.make_context(t_unit)
             self.pxd_body.add_subsection(
                     new_sub
                     )
-        CybindWriter.write_file(self)
+        CybindWriter.write_file(self, t_unit)
         return
 
 
@@ -131,6 +131,7 @@ class PyxWriter(CybindWriter):
             author: str = ""
             ):
         super().__init__(
+                header,
                 path,
                 license_section=license_section,
                 footer_section=footer_section,
@@ -144,17 +145,16 @@ class PyxWriter(CybindWriter):
             self,
             t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
             ) -> None:
-        pdb.set_trace()
         self.pyx_body.header = self.header
         self.pyx_body.namespace = t_unit
         self.pyx_body.make_context(t_unit)
         for ns in t_unit.namespaces:
             new_sub = PyxBodySection()
-            new_sub.header = self.header
+            new_sub.header = self.header_path
             new_sub.namespace = ns
             new_sub.make_context(t_unit)
             self.pyx_body.add_subsection(
                     new_sub
                     )
-        CybindWriter.write_file(self)
+        CybindWriter.write_file(self, t_unit)
         return

@@ -58,7 +58,10 @@ class Assembler(object):
                 return True
         return False
 
-    def _check_dependency_valid(self, dep: "Assembler", fatal: bool = True) -> bool:
+    def _check_dependency_valid(
+            self,
+            dep: "Assembler",
+            fatal: bool = True) -> bool:
         if self in dep.assembler_dependencies:
             if fatal:
                 cfg.factory_logger.bind(color="red").opt(colors=True).error(

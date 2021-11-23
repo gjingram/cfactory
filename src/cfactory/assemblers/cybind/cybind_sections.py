@@ -1,23 +1,49 @@
 import os
 import time
 
+from wheezy.template.engine import Engine
+from wheezy.template.ext.core import CoreExtension
+from wheezy.template.ext.code import CodeExtension
+from wheezy.template.loader import FileLoader
+
 from . import paths
-from cfactory.utils.wheezy_section import WheezySection
 import cfactory.utils.file_writer as fw
 import cfactory.assemblers.cybind.cybind as cybind
+import pdb
 
 
 template_path = os.path.join(
         paths.cybind_top,
         "templates"
         )
+template_engine = Engine(
+        loader=FileLoader([template_path]),
+        extensions=[
+            CoreExtension(),
+            CodeExtension()
+            ]
+        )
+template_engine
 
 
-class HeaderSection(fw.FileSection, WheezySection):
+class WheezyCybind(object):
+
+    def __init__(self, template: str):
+        self.template = template_engine.get_template(
+                template
+                )
+        return
+
+    def template_eval(self, ctx: dict) -> str:
+        return self.template.render(ctx)
+
+
+
+class HeaderSection(fw.FileSection, WheezyCybind):
 
     def __init__(self):
         fw.FileSection.__init__(self, "cybind_header")
-        WheezySection.__init__(self, "cybind_header.template")
+        WheezyCybind.__init__(self, "cybind_header.template")
         self.search_path = [template_path]
         self.author = "Anonymous"
         self.header = ""
@@ -28,7 +54,10 @@ class HeaderSection(fw.FileSection, WheezySection):
             self,
             t_unit: "ccmodel.code_models.variants.TranslationUnitDecl"
             ) -> dict:
-        self.ctx["mtime"] = time.localtime()
+        self.ctx["mtime"] = time.strftime(
+                "%Y/%m/%d %H:%M:%S",
+                time.localtime()
+                )
         self.ctx["author"] = self.author
         self.ctx["binds"] = self.header
         return
@@ -38,11 +67,11 @@ class HeaderSection(fw.FileSection, WheezySection):
         return
 
 
-class ImportSection(fw.FileSection, WheezySection):
+class ImportSection(fw.FileSection, WheezyCybind):
 
     def __init__(self):
         fw.FileSection.__init__(self, "import")
-        WheezySection.__init__(self, "import_section.template")
+        WheezyCybind.__init__(self, "import_section.template")
         self.cimports = []
         self.pyimports = []
         self.ctx = {}
@@ -61,11 +90,11 @@ class ImportSection(fw.FileSection, WheezySection):
         return
 
 
-class PxdBodySection(fw.FileSection, WheezySection):
+class PxdBodySection(fw.FileSection, WheezyCybind):
 
     def __init__(self):
         fw.FileSection.__init__(self, "pxd_body")
-        WheezySection.__init__(self, "pxd_body.template")
+        WheezyCybind.__init__(self, "pxd_body.template")
         self.header = ""
         self.namespace = None
         self.ctx = {}
@@ -84,11 +113,11 @@ class PxdBodySection(fw.FileSection, WheezySection):
         return
 
 
-class PyxBodySection(fw.FileSection, WheezySection):
+class PyxBodySection(fw.FileSection, WheezyCybind):
 
     def __init__(self):
         fw.FileSection.__init__(self, "pyx_body")
-        WheezySection.__init__(self, "pyx_body.template")
+        WheezyCybind.__init__(self, "pyx_body.template")
         self.header = ""
         self.namespace = None
         self.ctx = {}
@@ -105,7 +134,3 @@ class PyxBodySection(fw.FileSection, WheezySection):
     def resolve_section_text(self, **extras: dict) -> None:
         self.section_text = self.template_eval(self.ctx)
         return
-
-
-
-

@@ -3,6 +3,7 @@ import sys
 import shutil
 import time
 import glob
+from pathlib import Path
 from typing import (
         List,
         Union,
@@ -50,18 +51,23 @@ class CybindModule(object):
         self.header = module_header
         self.pyx = self.out_file_noext + ".pyx"
         self.pxd = self.out_file_noext + ".pxd"
+        self.out_dir = os.path.dirname(self.pyx)
+
         self.pyx_writer = PyxWriter(
+                self.header,
                 self.pyx,
                 license_section=self.assembler.license_section,
                 footer_section=self.assembler.footer_section,
                 author=self.module_author
                 )
         self.pxd_writer = PxdWriter(
+                self.header,
                 self.pxd,
                 license_section=self.assembler.license_section,
                 footer_section=self.assembler.footer_section,
                 author=self.module_author
                 )
+
         cybind.register_module(self)
 
         self.ccms = factory.ccm[self.header]
@@ -75,7 +81,6 @@ class CybindModule(object):
         # numpy.ndarray, requiring a cimport/import numpy
         # statement.
         self.import_resolver = None
-        self.resolve_imports()
         return
 
     @classmethod
@@ -129,13 +134,14 @@ class CybindModule(object):
         return
 
     def write_files(self) -> None:
+        self.resolve_imports()
         t_unit = self.ccms.translation_unit
         tic = time.perf_counter()
         self.pxd_writer.write_file(t_unit)
         self.pyx_writer.write_file(t_unit)
         toc = time.perf_counter()
         cfg.cfactory_logger.info(
-                f"{self.module_name}.pxd/pyx written in {toc - tic} [s]"
+                f"{self.module_name}.pxd/pyx written in {toc - tic} [s]\n"
                 )
         return
 
@@ -159,6 +165,9 @@ class CybindAssembler(assembler.FinishStage):
                 package_dir,
                 out_dir
                 )
+
+        if not os.path.exists(self.cybind_out):
+            Path(self.cybind_out).mkdir(parents=True)
                 
         self.package_dir = package_dir
         self._file_globs = []
@@ -206,8 +215,9 @@ class CybindAssembler(assembler.FinishStage):
             self._cybind_modules.append(
                     module
                     )
-        pdb.set_trace()
         return
 
-
-
+    def assemble(self) -> None:
+        for module in self._cybind_modules:
+            module.write_files()
+        return
