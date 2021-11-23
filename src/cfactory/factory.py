@@ -127,13 +127,12 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
                     ccs_file_base + ".ccs"
                     )
             self.headers[src_dep] = reader.read(ccs_file_name)
-        pdb.set_trace()
         self.source_ccs.update(reader._headers_loaded)
         self.ccs_catalogue.update(reader._ccs_catalogue)
         toc = time.perf_counter()
 
         cfg.cfactory_logger.info(
-                f"CCM state loading completed in {toc - tic} [s]"
+                f"CCM state loading completed in {toc - tic} [s]\n"
                 )
         return
 
@@ -157,7 +156,6 @@ class CCMAssembler(assemblers.Assembler, ccm_.CcmOpt):
     def __getitem__(
             self,
             header: str) -> Optional["ccmodel.code_models.header.Header"]:
-        pdb.set_trace()
         if header in self.headers:
             return self.headers[header]
         cfg.cfactory_logger.bind(color="orange").opt(colors=True).warn(
@@ -285,6 +283,8 @@ def factory_assemble() -> None:
 
     if finish_order is not None:
         for fa in finish_order:
+            if not isinstance(fa, assemblers.Assembler):
+                continue
             tic = time.perf_counter()
             fa.assemble()
             toc = time.perf_counter()
