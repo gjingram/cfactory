@@ -85,6 +85,7 @@ class PyFileWriter(fw.CodeWriter):
         return
 
     def initialize_writer(self) -> None:
+        fw.CodeWriter.initialize_writer(self)
         self.long_comment_wrapper = comment_wrappers["long"][
                 self.long_comment_style]
         self.header.wrap_fn = self.long_comment_wrapper

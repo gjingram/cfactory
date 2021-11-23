@@ -1,10 +1,12 @@
 import os
 import sys
 import shutil
+from pathlib import Path
 from typing import Optional
 import time
 
 import cfactory.__config__.cfactory_config as cfg
+import pdb
 
 
 class FileSection(object):
@@ -24,7 +26,7 @@ class FileSection(object):
             return
         write_text = ""
         if self.wrap_fn is not None:
-            write_text = self.wrap_fn(self.section_text, extras)
+            write_text = self.wrap_fn(self.section_text, extras=extras)
         else:
             write_text = self.section_text
         file_object.write(write_text)
@@ -86,9 +88,11 @@ class FileWriter(object):
             path: str):
         self.displayname = displayname
         self.file_path = path
+        self.file_dir = os.path.dirname(self.file_path)
+        if not os.path.exists(self.file_dir):
+            Path(self.file_dir).mkdir(parents=True)
         self.extras = {}
         self.file_sections = []
-        self._file = None
         return
 
     def add_file_section(self, section: FileSection) -> None:
@@ -102,6 +106,7 @@ class FileWriter(object):
         self.initialize_writer()
         with open(self.file_path, "w") as file_:
             for section in self.file_sections:
+                section.resolve_section_text()
                 section.write_section(file_, self.extras)
         return
 
@@ -130,6 +135,7 @@ class CodeWriter(FileWriter):
             if license_text is not None:
                 license_sub.section_text = license_text
         self.header.add_subsection(license_sub)
+        self.add_file_section(self.header)
 
         self.footer = None
         if footer_section is not None:
@@ -142,4 +148,8 @@ class CodeWriter(FileWriter):
         self.long_comment_wrapper = None
         self.short_comment_wrapper = None
 
+        return
+
+    def initialize_writer(self) -> None:
+        self.add_file_section(self.footer)
         return

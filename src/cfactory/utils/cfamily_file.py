@@ -83,6 +83,7 @@ class CFileWriter(fw.CodeWriter):
         return
 
     def initialize_writer(self) -> None:
+        fw.CodeWriter.initialize_writer(self)
         self.long_comment_wrapper = comment_wrappers["long"][
                 self.long_comment_style]
         self.short_comment_wrapper = comment_wrappers["short"][
