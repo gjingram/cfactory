@@ -19,7 +19,7 @@
 #include <map>
 
 
-typedef struct {
+typedef struct Struct1 {
 	double a1;
 	float  a2;
 	bool   a3;
