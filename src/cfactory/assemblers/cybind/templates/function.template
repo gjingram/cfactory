@@ -1,43 +1,60 @@
 @def function_name(func):
-@(func.qual_name)
+@func.get_id()\
 @end
 
 @def write_arg_name(arg):
-@("" if arg.is_anonymous else arg.name)
+@#ignore
+@if not arg.is_anonymous:
+@arg.name\
+@endif
 @end
 
 @def ext_if_default(arg):
-@(f" = {arg.default_value}" if arg.has_default else "")
+@#ignore
+@if arg.has_default:
+=@arg.default_value\
+@endif
 @end
 
 @def write_decl_parms(args):
+@#ignore
 @for arg in args:
-@write_arg_name(arg)@ext_if_default(arg),
+@arg.type @write_arg_name(arg)@ext_if_default(arg),\
 @end
 @end
 
-@def declare_function(func)
-@func.type @function_name(func)(
-    @write_decl_parms(func.parameters)
-    )
+@def declare_function(func):
+@func.return_type.type @{func.name}(@write_decl_parms(func.parameters))\
 @end
 
 @def write_cython_parms(args):
+@#ignore
 @for arg in args:
-@(f"x{arg.index}" if arg.is_anonymous else arg.name) @ext_if_default(arg),
+@if arg.is_anonymous:
+x@arg.index\
+@else:
+@arg.name\
+@endif
+@ext_if_default(arg),\
 @end
 @end
 
 @def fill_args(args):
+@#ignore
 @for arg in args:
-@(f"x{arg.index}" if arg.is_anonymous else arg.name),
+@if arg.is_anonymous:
+x@arg.index,\
+@else:
+@arg.name,\
+@endif
+@end
 @end
 
-@def bind_function(func)
-cpdef @func.type @function_name(func)(
-    @write_cython_parms(func.parameters)
-    ):
-    return _@function_name()(
-        @fill_args(func.parameters)
-        )
+@def bind_function(func):
+cpdef @func.return_type.type @{func.name}(\
+@write_cython_parms(func.parameters)\
+):
+    return @{func.name}(\
+@fill_args(func.parameters)\
+)\
 @end

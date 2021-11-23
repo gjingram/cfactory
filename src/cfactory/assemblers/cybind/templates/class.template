@@ -1,25 +1,31 @@
-@require(name, inherit, ctors, public_vars, public_methods, nested_classes)
-@import "function.template" as function
+@def get_base(base_in):
+@#ignore
+@if type(base_in.type.resolve_type()) is str:
+@base_in.type.resolve_type()\
+@elif base_in is not None and base_in.type.resolve_type() is not None:
+@base_in.type.resolve_type().get_id()\
+@endif
+@end
 
 @def write_class(cls):
-cdef class Py{@cls.name}(@for icls in cls.bases:
-                @icls.name,
-                @end):
-
-    cdef {@cls.name} *this
+cdef class Py@{cls.name}(\
+@for icls in [x for x in cls.bases if x is not None]:
+@get_base(icls), \
+@end
+):
+@import "function.template" as function
 
     cdef __cinit__(self, *args, **kwargs):
         @for ctor in cls.ctors:
-        if @ctor.param_types_tuple == @((type(arg) for arg in args)):
+        if ctor.param_types_tuple == tuple(arg.type for arg in args):
             self.this = new @{cls.name}(*args)
         @end
         return
 
     def __init__(self, *args, **kwargs):
         @for icls in cls.bases:
-        @{icls.name}.__init__(self, *args, **kwargs)
+        @{get_base(icls)}.__init__(self, *args, **kwargs)
         @end
-        
         return
 
     def __dealloc__(self):
@@ -27,23 +33,44 @@ cdef class Py{@cls.name}(@for icls in cls.bases:
             del self.this
         return
 
-    @for pvar in [x for x in cls.variables if x.access_specifier == "public"]:
-    @property
-    def @{pvar.name}():
-        return self._ptr.@pvar.name
+    cdef @{cls.name} *this
+    @for pvar in [x for x in cls.members if x.access_specifier == "public"]:
 
-    @{@pvar}.setter
-    def @{pvar.name}(@pvar.type x):
-        self._ptr.@{pvar.name} = x
+    @@property
+    def @{pvar.name}(self):
+        return self.this.@{pvar.name}
+
+    @\
+@{pvar.name}.setter
+    def @{pvar.name}(self,x):
+        self.this.@{pvar.name} = x
         return
+    @end\
 
-    @end
+@for pmeth in [x for x in cls.methods if x.access_specifier == "public"]:
 
-    @for pmeth in [x for x in cls.functions if x.access_specifier == "public"]:
-    def @{pmeth.name}(
-                    self,
-                    @function.write_cython_parms(pmeth.parameters)
-                    ):
-        return self._ptr.@{pmeth.name}(@function.fill_args(pmeth.parameters))
-    @end
+    def @{pmeth.name}(\
+self,\
+@function.write_cython_parms(pmeth.parameters)\
+):
+        return self.this.@{pmeth.name}(\
+@function.fill_args(pmeth.parameters)\
+)
+@end
+@end
+
+@def write_class_decl(cls):
+@import "function.template" as function:
+@if not cls.is_template:
+cdef cppclass @cls.name:
+@else:
+cdef cppclass @cls.name[\
+@for parm in 
+@for pvar in [x for x in cls.members if x.access_specifier == "public"]:
+        cdef @pvar.type @pvar.name
+@end
+
+@for meth in [x for x in cls.methods if x.access_specifier == "public"]:
+        cdef @function.declare_function(meth)
+@end
 @end

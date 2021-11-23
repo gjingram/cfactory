@@ -1,8 +1,11 @@
 @require(cimports, pyimports)
-@for import in cimports:
-cimport @import
+@for import_ in cimports:
+cimport @import_
+here cimports
 @end
 
-@for import in pyimports:
-import @import
+
+@for import_ in pyimports:
+import @import_
+here pyimports
 @end

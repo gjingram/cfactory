@@ -1,15 +1,13 @@
 @require(header, namespace)
 @import "class.template" as class_
 @import "function.template" as function
-
 @for func in namespace.functions:
-@function.bind_function(func)
 
-@end
+@function.bind_function(func)
+@end\
 
 
 @for cls in namespace.classes:
+
 @class_.write_class(cls)
-
-
-@end
+@end\

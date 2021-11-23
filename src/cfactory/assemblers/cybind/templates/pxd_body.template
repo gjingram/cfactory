@@ -1,46 +1,100 @@
 @require(header, namespace)
 @import "class.template" as class_
 @import "function.template" as function
-
-@def cdef_extern_line():
-@if namespace.name != "":
+@def cdef_extern_line(header, namespace):
+@#ignore
+@if "name" in vars(namespace):
 cdef extern from "@header" namespace @namespace.name:
 @else:
 cdef extern from "@header":
+@endif
 @end
-@end
-
 @def enum_decl_line(enum):
+@#ignore
 @if enum.scope is not None:
-cpdef enum class @{enum.name}(int):
+cpdef enum class @{enum.name}(@enum.int_type.type):
 @else:
 cpdef enum @enum.name:
+@endif
 @end
 
-@cdef_extern_line()
+@def fuse_template_fn(template):
+@template.return_type.type \
+@template.name\
+[\
+@for parm in template.template_parameters:
+@if parm.param_type == "TemplateTypeParam":
+@parm.type.resolve_type()\
+@elif parm.param_type == "TemplateNonTypeParam":
+@parm.type.resolve_type() @parm.name\
+@else:
+@parm.name\
+@endif
+@if parm.default is not None or parm.is_parameter_pack:
+ = *\
+@endif
+,\
+@end
+]\
+(@function.write_decl_parms(template.parameters))
+@end
 
-    @for tdef in ns.typedefs:
-    ctypedef @tdef.underlying_type @tdef.type
-    @end
+@def fuse_template_class(cls):
+@cls.name\
+[\
+@for parm in template.template_parameters:
+@if parm.param_type == "TemplateTypeParam":
+@parm.type.resolve_type()\
+@endif
+@if parm.default is not None or parm.is_parameter_pack:
+ = *\
+,\
+@endif
+@end
 
-    @for var in ns.variables:
-    @var.type @var.name
-    @end
+@cdef_extern_line(header, namespace)
+    @for tdef in namespace.typedefs:
+    @if tdef.type.resolve_type() is not None:
+    ctypedef @tdef.underlying_type.resolve_type() @tdef.type.resolve_type()
+    @elif tdef.is_struct:
+    ctypedef @tdef.underlying_type.resolve_type():
 
-    @for fn in ns.functions:
-    @function.declare_function(fn)
-
-    @end
-
-    @for klass in [x for x in ns.classes if not x.is_abstract]:
-    cdef cppclass @class.name
-
-    @end
-
-    @for enum in ns.enumerations:
-    @enum_decl_line(enum)
-        @for enum_const in enum.enum_constants:
-        @enum.name,
+        @for pmeth in [x for x in tdef.struct.methods if \
+        x.access_specifier == "public" \
+        and not x.name.startswith("__")]:
+        @if pmeth.is_template:
+        cdef @fuse_template_fn(pmeth)
+        @else:
+        cdef @function.declare_function(pmeth)
+        @endif
         @end
-    
+
+        @for member in [x for x in tdef.struct.members]:
+        cdef @member.type @member.name
+        @end
+    @endif
+    @end
+
+    @for var in namespace.variables:
+    cdef @var.resolve_type() @var.name
+    @end
+
+    @for fn in [x for x in namespace.functions]:
+    @if fn.is_template:
+    cdef @fuse_template_fn(fn)
+    @else:
+    cdef @function.declare_function(fn)
+    @endif
+    @end
+
+    @for klass in [x for x in namespace.classes if not x.is_abstract and x.name != ""]:
+    @class_.write_class_decl(klass)
+    @end
+
+    @for enum in namespace.enumerations:
+    @enum_decl_line(enum)\
+      @for enum_const in enum.enum_constants:
+        @enum_const.name = @enum_const.value
+      @end
+
     @end
