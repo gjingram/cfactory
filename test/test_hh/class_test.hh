@@ -18,13 +18,18 @@
 #include <array>
 #include <map>
 
+#define LEMU_API_CLASS class [[using clang: annotate("lemu_api"), annotate("test")]]
+#define GCC_LEMU_API_CLASS class __attribute__((annotate("lemu_api")))
 
+
+namespace lemu
+{
 typedef struct Struct1 {
-	double a1;
+	double a1;  // a1
 	float  a2;
 	bool   a3;
 } TestStruct1;
-
+}
 
 struct TestStruct2 {
 	
@@ -43,7 +48,8 @@ struct TestStruct2 {
 };
 
 
-class TestClass1 {
+namespace lemu {
+GCC_LEMU_API_CLASS TestClass1 {
 	
 	public:
 	TestClass1();
@@ -90,13 +96,13 @@ class TestClass1 {
 
 };
 
-
-class TestClass2 : public TestStruct2, private TestClass1 {
+LEMU_API_CLASS TestClass2 : public TestStruct2, private TestClass1 {
 
 	public:
 	TestClass2();
 	~TestClass2();
 
 };
+}
 
 #endif

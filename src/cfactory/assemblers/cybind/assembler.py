@@ -180,6 +180,8 @@ class CybindAssembler(assembler.FinishStage):
         self.footer_section = None
         self._headers = []
         self._cybind_modules = []
+        self._cpp_namespaces = []
+        self._package_ccms = []
 
         self._ccm_rlevel = assembler.CCMRecursionLevel.INHERITED
 
@@ -205,6 +207,10 @@ class CybindAssembler(assembler.FinishStage):
                 self._add_file(file_)
         self.source_dependencies = set(self._headers)
         return
+
+    def find_namespaces(self) -> None:
+        for header in self._headers:
+
 
     def pre_assemble(self) -> None:
         for header in self._headers:

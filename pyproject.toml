@@ -6,11 +6,12 @@ authors = [
     {name = "Gabe Ingram", email = "gabriel.ingram@colorado.edu"},
 ]
 dependencies = [
-    "loguru~=0.5",
     "graphlib-backport~=1.0",
     "-e ../ccmodel",
     "-e ../clang_tools",
     "wheezy-template~=3.1",
+    "poxy~=0.5",
+    "breathe~=4.31",
 ]
 requires-python = ">=3.8"
 dynamic = ["classifiers"]
